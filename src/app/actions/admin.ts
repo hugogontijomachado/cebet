@@ -52,6 +52,13 @@ export async function createGame(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function setBetPaid(betId: Uuid, paid: boolean) {
+  await requireAdmin();
+  const sb = createAdmin();
+  await sb.from("bets").update({ paid }).eq("id", betId);
+  revalidatePath("/");
+}
+
 export async function closeBetting(gameId: Uuid) {
   await requireAdmin();
   const sb = createAdmin();

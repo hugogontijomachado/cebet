@@ -13,11 +13,13 @@ import { PixInfo } from "@/components/PixInfo";
 import { BetForm } from "@/components/BetForm";
 import { PredictionsTable } from "@/components/PredictionsTable";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
+import { isAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const season = await getActiveSeason();
+  const admin = await isAdmin();
 
   if (!season) {
     return (
@@ -74,7 +76,11 @@ export default async function Home() {
             </>
           )}
 
-          <PredictionsTable gameId={game.id} initial={await getGameBets(game.id)} />
+          <PredictionsTable
+            gameId={game.id}
+            initial={await getGameBets(game.id)}
+            isAdmin={admin}
+          />
         </>
       )}
 

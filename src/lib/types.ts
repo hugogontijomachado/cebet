@@ -40,5 +40,6 @@ export interface Bet {
   pred_a: number;
   pred_b: number;
   points: number | null;
+  paid: boolean;
   created_at: string;
 }
