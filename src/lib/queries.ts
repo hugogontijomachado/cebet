@@ -21,6 +21,12 @@ export async function getCurrentGame(seasonId: Uuid): Promise<Game | null> {
   return (data as Game) ?? null;
 }
 
+export async function getGameById(gameId: Uuid): Promise<Game | null> {
+  const sb = createServerRead();
+  const { data } = await sb.from("games").select("*").eq("id", gameId).maybeSingle();
+  return (data as Game) ?? null;
+}
+
 export async function getParticipants(seasonId: Uuid): Promise<Participant[]> {
   const sb = createServerRead();
   const { data } = await sb

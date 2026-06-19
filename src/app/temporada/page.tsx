@@ -41,14 +41,18 @@ export default async function TemporadaPage() {
       <section className="flex flex-col gap-4">
         <h2 className="font-display text-lg">Jogos</h2>
         {history.map(({ game, winners }) => (
-          <div key={game.id} className="rounded-xl border border-hairline-cloud p-4">
+          <Link
+            key={game.id}
+            href={`/jogo/${game.id}`}
+            className="block rounded-xl border border-hairline-cloud p-4 transition hover:border-violet-mid"
+          >
             <div className="text-ink">
               <MatchCard game={game} />
             </div>
             <p className="mt-2 text-center text-sm text-violet-mid">
-              {winners.length ? `Cravou: ${winners.join(", ")}` : "Acumulou"}
+              {winners.length ? `Cravou: ${winners.join(", ")}` : "Acumulou"} · ver palpites →
             </p>
-          </div>
+          </Link>
         ))}
         {history.length === 0 && (
           <p className="text-violet-mid">Nenhum jogo encerrado ainda.</p>
