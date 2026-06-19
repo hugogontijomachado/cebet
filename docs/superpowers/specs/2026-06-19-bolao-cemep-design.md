@@ -156,8 +156,9 @@ constante de config para fácil ajuste.
   - Escolher o próprio nome na **lista** (radios/botões) **ou** "sou novo" + nome.
   - Digitar placar `[A] x [B]`.
   - Enviar (upsert).
-- **Ao vivo:** lista de **quem já palpitou** (apenas nomes). Os **palpites em si
-  ficam ocultos** até a apuração (anti-cópia).
+- **Ao vivo:** tabela com **todos os palpites** (nome + placar), visível para
+  todos desde o início, mesmo com as apostas abertas (transparência total —
+  decisão revisada em 2026-06-19, substitui o "ocultar até a apuração").
 - Estados: `open` (aceitando), `closed` (palpites encerrados, aguardando resultado),
   `resolved` (mostra resultado + ganhador + animação).
 - Se não há temporada/jogo ativo: tela "aguardando o próximo jogo".

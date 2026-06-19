@@ -31,14 +31,24 @@ export async function getParticipants(seasonId: Uuid): Promise<Participant[]> {
   return (data as Participant[]) ?? [];
 }
 
-export async function getBettorNames(gameId: Uuid): Promise<string[]> {
+export interface BetView {
+  name: string;
+  predA: number;
+  predB: number;
+}
+
+/** All predictions for a game (name + score), visible to everyone. */
+export async function getGameBets(gameId: Uuid): Promise<BetView[]> {
   const sb = createServerRead();
   const { data } = await sb
     .from("bets")
-    .select("participant_id, participants(name)")
-    .eq("game_id", gameId);
-  type Row = { participants: { name: string } | null };
-  return ((data as unknown as Row[]) ?? []).map((r) => r.participants?.name ?? "").filter(Boolean);
+    .select("pred_a, pred_b, participants(name)")
+    .eq("game_id", gameId)
+    .order("created_at", { ascending: true });
+  type Row = { pred_a: number; pred_b: number; participants: { name: string } | null };
+  return ((data as unknown as Row[]) ?? [])
+    .map((r) => ({ name: r.participants?.name ?? "", predA: r.pred_a, predB: r.pred_b }))
+    .filter((b) => b.name);
 }
 
 export async function getBetsForGame(gameId: Uuid): Promise<Bet[]> {

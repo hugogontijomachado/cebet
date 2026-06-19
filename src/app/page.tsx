@@ -3,14 +3,15 @@ import {
   getActiveSeason,
   getCurrentGame,
   getParticipants,
-  getBettorNames,
+  getGameBets,
   getCurrentPot,
   getResolvedGamesWithWinners,
 } from "@/lib/queries";
 import { MatchCard } from "@/components/MatchCard";
 import { PotDisplay } from "@/components/PotDisplay";
+import { PixInfo } from "@/components/PixInfo";
 import { BetForm } from "@/components/BetForm";
-import { LiveBettors } from "@/components/LiveBettors";
+import { PredictionsTable } from "@/components/PredictionsTable";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +48,7 @@ export default async function Home() {
       </header>
 
       <PotDisplay value={pot} />
+      <PixInfo betValue={Number(season.bet_value)} />
 
       {!game ? (
         <p className="text-violet-mid">Aguardando o próximo jogo…</p>
@@ -69,9 +71,10 @@ export default async function Home() {
                 participants={await getParticipants(season.id)}
                 disabled={game.status !== "open"}
               />
-              <LiveBettors gameId={game.id} initialNames={await getBettorNames(game.id)} />
             </>
           )}
+
+          <PredictionsTable gameId={game.id} initial={await getGameBets(game.id)} />
         </>
       )}
 
