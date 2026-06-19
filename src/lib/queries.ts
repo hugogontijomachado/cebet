@@ -143,6 +143,35 @@ export async function getLeaderboard(seasonId: Uuid): Promise<LeaderRow[]> {
   );
 }
 
+export async function getLatestClosedSeason(): Promise<Season | null> {
+  const sb = createServerRead();
+  const { data } = await sb
+    .from("seasons")
+    .select("*")
+    .eq("status", "closed")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (data as Season) ?? null;
+}
+
+export interface ChampionInfo {
+  names: string[];
+  points: number;
+  prize: number;
+}
+
+/** Season champion(s) = top of the leaderboard; prize = remaining accumulated pot. */
+export async function getSeasonChampion(season: Season): Promise<ChampionInfo | null> {
+  const board = await getLeaderboard(season.id);
+  if (board.length === 0) return null;
+  const top = board[0].points;
+  const names = board.filter((r) => r.points === top).map((r) => r.participant.name);
+  const summaries = await getResolvedSummaries(season.id);
+  const prize = computePot(Number(season.bet_value), carriedBetCount(summaries), 0);
+  return { names, points: top, prize };
+}
+
 export async function getResolvedGamesWithWinners(
   seasonId: Uuid,
 ): Promise<{ game: Game; winners: string[] }[]> {

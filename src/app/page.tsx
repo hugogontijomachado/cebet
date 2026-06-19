@@ -6,6 +6,8 @@ import {
   getGameBets,
   getCurrentPot,
   getResolvedGamesWithWinners,
+  getLatestClosedSeason,
+  getSeasonChampion,
 } from "@/lib/queries";
 import { MatchCard } from "@/components/MatchCard";
 import { PotDisplay } from "@/components/PotDisplay";
@@ -13,6 +15,8 @@ import { PixInfo } from "@/components/PixInfo";
 import { BetForm } from "@/components/BetForm";
 import { PredictionsTable } from "@/components/PredictionsTable";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
+import { SeasonCloseWatcher } from "@/components/SeasonCloseWatcher";
+import { ChampionView } from "@/components/ChampionView";
 import { isAdmin } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +26,12 @@ export default async function Home() {
   const admin = await isAdmin();
 
   if (!season) {
+    // No active season — show the most recent champion screen if there is one.
+    const closed = await getLatestClosedSeason();
+    if (closed) {
+      const champion = await getSeasonChampion(closed);
+      return <ChampionView season={closed} champion={champion} />;
+    }
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
         <h1 className="font-display text-4xl font-bold">Bolão CEMEP</h1>
@@ -44,6 +54,7 @@ export default async function Home() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center gap-8 px-4 py-10">
+      <SeasonCloseWatcher seasonId={season.id} />
       <header className="text-center">
         <p className="text-xs uppercase tracking-widest text-violet-mid">{season.name}</p>
         <h1 className="font-display text-3xl font-bold">Bolão CEMEP</h1>
@@ -58,22 +69,24 @@ export default async function Home() {
         <>
           <MatchCard game={game} />
 
-          {game.status === "resolved" ? (
-            <WinnerCelebration
+          <WinnerCelebration
+            gameId={game.id}
+            initialStatus={game.status}
+            winners={resolvedWinners}
+            resultA={game.result_a}
+            resultB={game.result_b}
+            potAmount={game.pot_amount}
+            teamAName={game.team_a_name}
+            teamBName={game.team_b_name}
+          />
+
+          {game.status !== "resolved" && (
+            <BetForm
+              seasonId={season.id}
               gameId={game.id}
-              initialStatus={game.status}
-              winners={resolvedWinners}
+              participants={await getParticipants(season.id)}
+              disabled={game.status !== "open"}
             />
-          ) : (
-            <>
-              <WinnerCelebration gameId={game.id} initialStatus={game.status} winners={[]} />
-              <BetForm
-                seasonId={season.id}
-                gameId={game.id}
-                participants={await getParticipants(season.id)}
-                disabled={game.status !== "open"}
-              />
-            </>
           )}
 
           <PredictionsTable
