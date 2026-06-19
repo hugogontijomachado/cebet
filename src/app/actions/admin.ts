@@ -59,6 +59,21 @@ export async function setBetPaid(betId: Uuid, paid: boolean) {
   revalidatePath("/");
 }
 
+export async function updateBetScore(betId: Uuid, predA: number, predB: number) {
+  await requireAdmin();
+  if (!Number.isInteger(predA) || !Number.isInteger(predB) || predA < 0 || predB < 0) return;
+  const sb = createAdmin();
+  await sb.from("bets").update({ pred_a: predA, pred_b: predB }).eq("id", betId);
+  revalidatePath("/");
+}
+
+export async function deleteBet(betId: Uuid) {
+  await requireAdmin();
+  const sb = createAdmin();
+  await sb.from("bets").delete().eq("id", betId);
+  revalidatePath("/");
+}
+
 export async function closeBetting(gameId: Uuid) {
   await requireAdmin();
   const sb = createAdmin();

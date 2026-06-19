@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { createBrowserSupabase } from "@/lib/supabase/client";
-import { setBetPaid } from "@/app/actions/admin";
+import { setBetPaid, updateBetScore, deleteBet } from "@/app/actions/admin";
 import type { BetView } from "@/lib/queries";
 import type { Uuid } from "@/lib/types";
 
@@ -23,7 +23,7 @@ export function PredictionsTable({
       .channel(`bets-table-${gameId}`)
       .on(
         "postgres_changes",
-        // "*" → catches inserts, edits, and paid toggles.
+        // "*" → catches inserts, edits, paid toggles, and deletes.
         { event: "*", schema: "public", table: "bets", filter: `game_id=eq.${gameId}` },
         async () => {
           const { data } = await sb
@@ -70,30 +70,122 @@ export function PredictionsTable({
             <tr className="text-left text-[10px] uppercase tracking-widest text-violet-mid">
               <th className="pb-1">Nome</th>
               <th className="pb-1 text-center">Palpite</th>
-              <th className="pb-1 text-right">Pago</th>
+              <th className="pb-1 text-center">Pago</th>
+              {isAdmin && <th className="pb-1 text-right">Ações</th>}
             </tr>
           </thead>
           <tbody>
             {bets.map((b) => (
-              <tr key={b.id} className="border-b border-hairline-violet">
-                <td className="py-2 pr-2">{b.name}</td>
-                <td className="py-2 text-center font-display text-lg">
-                  {b.predA} <span className="text-violet-mid">x</span> {b.predB}
-                </td>
-                <td className="py-2 text-right">
-                  <PaidCell bet={b} isAdmin={isAdmin} />
-                </td>
-              </tr>
+              <BetRow key={b.id} bet={b} isAdmin={isAdmin} />
             ))}
           </tbody>
         </table>
       )}
       {isAdmin && bets.length > 0 && (
         <p className="mt-2 text-center text-[10px] uppercase tracking-widest text-violet-mid">
-          Toque no ✅/❌ para marcar o pagamento
+          ✅/❌ pagamento · ✏️ editar placar · 🗑️ excluir
         </p>
       )}
     </div>
+  );
+}
+
+function BetRow({ bet, isAdmin }: { bet: BetView; isAdmin: boolean }) {
+  const [editing, setEditing] = useState(false);
+  const [a, setA] = useState(String(bet.predA));
+  const [b, setB] = useState(String(bet.predB));
+  const [pending, start] = useTransition();
+
+  function save() {
+    start(async () => {
+      await updateBetScore(bet.id, Number(a), Number(b));
+      setEditing(false);
+    });
+  }
+  function cancel() {
+    setA(String(bet.predA));
+    setB(String(bet.predB));
+    setEditing(false);
+  }
+  function remove() {
+    if (confirm(`Excluir o palpite de ${bet.name}?`)) start(() => deleteBet(bet.id));
+  }
+
+  return (
+    <tr className="border-b border-hairline-violet">
+      <td className="py-2 pr-2">{bet.name}</td>
+      <td className="py-2 text-center font-display text-lg">
+        {editing ? (
+          <span className="inline-flex items-center gap-1">
+            <input
+              inputMode="numeric"
+              value={a}
+              onChange={(e) => setA(e.target.value.replace(/\D/g, ""))}
+              className="w-9 rounded-sm bg-paper px-1 py-1 text-center text-base text-ink"
+            />
+            <span className="text-violet-mid">x</span>
+            <input
+              inputMode="numeric"
+              value={b}
+              onChange={(e) => setB(e.target.value.replace(/\D/g, ""))}
+              className="w-9 rounded-sm bg-paper px-1 py-1 text-center text-base text-ink"
+            />
+          </span>
+        ) : (
+          <>
+            {bet.predA} <span className="text-violet-mid">x</span> {bet.predB}
+          </>
+        )}
+      </td>
+      <td className="py-2 text-center">
+        <PaidCell bet={bet} isAdmin={isAdmin} />
+      </td>
+      {isAdmin && (
+        <td className="whitespace-nowrap py-2 text-right">
+          {editing ? (
+            <>
+              <button
+                type="button"
+                onClick={save}
+                disabled={pending || a === "" || b === ""}
+                aria-label="salvar placar"
+                className="px-1 text-lime disabled:opacity-50"
+              >
+                ✓
+              </button>
+              <button
+                type="button"
+                onClick={cancel}
+                aria-label="cancelar"
+                className="px-1 text-violet-mid"
+              >
+                ✕
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                aria-label="editar placar"
+                className="px-1 transition active:scale-90"
+              >
+                ✏️
+              </button>
+              <button
+                type="button"
+                onClick={remove}
+                disabled={pending}
+                aria-label="excluir palpite"
+                className="px-1 transition active:scale-90 disabled:opacity-50"
+              >
+                🗑️
+              </button>
+            </>
+          )}
+        </td>
+      )}
+    </tr>
   );
 }
 
