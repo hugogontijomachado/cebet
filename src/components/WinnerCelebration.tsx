@@ -103,18 +103,7 @@ export function WinnerCelebration({
 
   return (
     <>
-      {hasWinner ? (
-        <button
-          type="button"
-          onClick={() => {
-            setOverlay(true);
-            celebrate();
-          }}
-          className="rounded-md bg-white/10 px-3 py-1 text-xs uppercase tracking-wide text-white"
-        >
-          Ver a festa de novo 🎉
-        </button>
-      ) : (
+      {!hasWinner && (
         <div className="rounded-xxl bg-night px-6 py-5 text-center ring-1 ring-hairline-violet">
           <p className="font-display text-2xl font-bold text-pink">Acumulou! 💰</p>
           <p className="mt-1 text-sm text-violet-mid">

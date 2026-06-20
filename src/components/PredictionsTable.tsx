@@ -6,7 +6,7 @@ import { setBetPaid, updateBetScore, deleteBet } from "@/app/actions/admin";
 import { computePoints } from "@/lib/scoring";
 import { PointsLegend } from "./PointsLegend";
 import type { BetView } from "@/lib/queries";
-import type { Uuid } from "@/lib/types";
+import type { GameStatus, Uuid } from "@/lib/types";
 
 export function PredictionsTable({
   gameId,
@@ -15,6 +15,8 @@ export function PredictionsTable({
   liveA = null,
   liveB = null,
   resolved = false,
+  resultA = null,
+  resultB = null,
 }: {
   gameId: Uuid;
   initial: BetView[];
@@ -22,10 +24,16 @@ export function PredictionsTable({
   liveA?: number | null;
   liveB?: number | null;
   resolved?: boolean;
+  resultA?: number | null;
+  resultB?: number | null;
 }) {
   const [bets, setBets] = useState<BetView[]>(initial);
   const [live, setLive] = useState<{ a: number; b: number } | null>(
     liveA != null && liveB != null ? { a: liveA, b: liveB } : null,
+  );
+  const [isResolved, setIsResolved] = useState(resolved);
+  const [final, setFinal] = useState<{ a: number; b: number } | null>(
+    resultA != null && resultB != null ? { a: resultA, b: resultB } : null,
   );
 
   useEffect(() => {
@@ -65,8 +73,19 @@ export function PredictionsTable({
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "games", filter: `id=eq.${gameId}` },
         (payload) => {
-          const n = payload.new as { live_a: number | null; live_b: number | null };
+          const n = payload.new as {
+            status: GameStatus;
+            live_a: number | null;
+            live_b: number | null;
+            result_a: number | null;
+            result_b: number | null;
+          };
           setLive(n.live_a != null && n.live_b != null ? { a: n.live_a, b: n.live_b } : null);
+          if (n.status === "resolved") {
+            setIsResolved(true);
+            if (n.result_a != null && n.result_b != null)
+              setFinal({ a: n.result_a, b: n.result_b });
+          }
         },
       )
       .subscribe();
@@ -75,31 +94,37 @@ export function PredictionsTable({
     };
   }, [gameId]);
 
-  const liveActive = live != null && !resolved;
+  // Score the standings against: the final result if resolved, else the live (preliminary) score.
+  const score = isResolved ? final : live;
+  const ranked = score != null;
 
-  // When a live score is set, rank by "points if the game ended now".
   const rows = bets.map((b) => ({
     bet: b,
-    pts: liveActive ? computePoints({ a: b.predA, b: b.predB }, live!) : null,
+    pts: ranked ? computePoints({ a: b.predA, b: b.predB }, score!) : null,
   }));
-  if (liveActive) {
+  if (ranked) {
     rows.sort((x, y) => (y.pts ?? 0) - (x.pts ?? 0) || x.bet.name.localeCompare(y.bet.name));
   }
 
   return (
     <div
       className={
-        liveActive
-          ? "w-full max-w-sm rounded-xl bg-night/40 p-3 ring-1 ring-pink/50"
+        ranked
+          ? `w-full max-w-sm rounded-xl bg-night/40 p-3 ring-1 ${isResolved ? "ring-lime/50" : "ring-pink/50"}`
           : "w-full max-w-sm"
       }
     >
       <p className="mb-2 text-center text-xs uppercase tracking-widest text-violet-mid">
         Palpites · {bets.length}
       </p>
-      {liveActive && (
-        <p className="mb-2 text-center text-[10px] uppercase tracking-widest text-pink">
-          Classificação parcial · placar {live!.a} × {live!.b}
+      {ranked && (
+        <p
+          className={`mb-2 text-center text-[10px] uppercase tracking-widest ${
+            isResolved ? "text-lime" : "text-pink"
+          }`}
+        >
+          {isResolved ? "Classificação final" : "Classificação parcial"} · placar {score!.a} ×{" "}
+          {score!.b}
         </p>
       )}
       {bets.length === 0 ? (
@@ -110,25 +135,19 @@ export function PredictionsTable({
             <tr className="text-left text-[10px] uppercase tracking-widest text-violet-mid">
               <th className="pb-1">Nome</th>
               <th className="pb-1 text-center">Palpite</th>
-              {liveActive && <th className="pb-1 text-center">Pontos</th>}
+              {ranked && <th className="pb-1 text-center">Pontos</th>}
               <th className="pb-1 text-center">Pago</th>
               {isAdmin && <th className="pb-1 text-right">Ações</th>}
             </tr>
           </thead>
           <tbody>
             {rows.map(({ bet, pts }) => (
-              <BetRow
-                key={bet.id}
-                bet={bet}
-                isAdmin={isAdmin}
-                showLive={liveActive}
-                livePts={pts}
-              />
+              <BetRow key={bet.id} bet={bet} isAdmin={isAdmin} showPts={ranked} pts={pts} />
             ))}
           </tbody>
         </table>
       )}
-      {liveActive && (
+      {ranked && (
         <div className="mt-3 flex justify-center">
           <PointsLegend />
         </div>
@@ -142,7 +161,7 @@ export function PredictionsTable({
   );
 }
 
-function LivePts({ pts }: { pts: number | null }) {
+function Pts({ pts }: { pts: number | null }) {
   if (pts == null) return null;
   const color = pts >= 2 ? "text-lime" : pts === 1 ? "text-white" : "text-violet-mid";
   return <span className={`font-display ${color}`}>{pts}</span>;
@@ -151,13 +170,13 @@ function LivePts({ pts }: { pts: number | null }) {
 function BetRow({
   bet,
   isAdmin,
-  showLive,
-  livePts,
+  showPts,
+  pts,
 }: {
   bet: BetView;
   isAdmin: boolean;
-  showLive: boolean;
-  livePts: number | null;
+  showPts: boolean;
+  pts: number | null;
 }) {
   const [editing, setEditing] = useState(false);
   const [a, setA] = useState(String(bet.predA));
@@ -179,7 +198,7 @@ function BetRow({
     if (confirm(`Excluir o palpite de ${bet.name}?`)) start(() => deleteBet(bet.id));
   }
 
-  const exact = livePts === 5;
+  const exact = pts === 5;
 
   return (
     <tr className={`border-b border-hairline-violet ${exact ? "bg-lime/10" : ""}`}>
@@ -207,9 +226,9 @@ function BetRow({
           </>
         )}
       </td>
-      {showLive && (
+      {showPts && (
         <td className="py-2 text-center">
-          <LivePts pts={livePts} />
+          <Pts pts={pts} />
         </td>
       )}
       <td className="py-2 text-center">

@@ -62,14 +62,6 @@ export default async function Home() {
     resolvedWinners.length > 0
   );
 
-  // Match in progress with a preliminary score → focus on the standings.
-  const liveActive = !!(
-    game &&
-    game.status !== "resolved" &&
-    game.live_a != null &&
-    game.live_b != null
-  );
-
   // PIX stays at the top only while bets are open; otherwise it moves to the bottom.
   const bettingOpen = !!(game && game.status === "open");
 
@@ -130,6 +122,8 @@ export default async function Home() {
             liveA={game.live_a}
             liveB={game.live_b}
             resolved={game.status === "resolved"}
+            resultA={game.result_a}
+            resultB={game.result_b}
           />
         </>
       )}

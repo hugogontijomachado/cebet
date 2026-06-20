@@ -45,6 +45,8 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
         liveA={game.live_a}
         liveB={game.live_b}
         resolved={game.status === "resolved"}
+        resultA={game.result_a}
+        resultB={game.result_b}
       />
     </main>
   );
