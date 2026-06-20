@@ -10,10 +10,7 @@ export function PointsLegend({ open = false }: { open?: boolean }) {
       </summary>
       <ul className="mt-2 space-y-1 text-white/90">
         <li>
-          <span className="inline-block rounded-md bg-lime px-1.5 font-display font-bold text-ink-deep">
-            5
-          </span>{" "}
-          — cravou o placar exato
+          <span className="font-bold text-lime">5</span> — cravou o placar exato
         </li>
         <li>
           <span className="font-bold text-lime">3</span> — acertou o vencedor <em>e</em> o saldo de

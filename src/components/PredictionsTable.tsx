@@ -144,16 +144,6 @@ export function PredictionsTable({
 
 function LivePts({ pts }: { pts: number | null }) {
   if (pts == null) return null;
-  if (pts === 5) {
-    return (
-      <span
-        title="cravou o placar"
-        className="inline-block min-w-[1.5rem] rounded-md bg-lime px-1.5 py-0.5 font-display text-base font-bold text-ink-deep"
-      >
-        5
-      </span>
-    );
-  }
   const color = pts >= 2 ? "text-lime" : pts === 1 ? "text-white" : "text-violet-mid";
   return <span className={`font-display ${color}`}>{pts}</span>;
 }
