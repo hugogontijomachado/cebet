@@ -43,9 +43,10 @@ export default async function RegrasPage() {
       <section className="flex flex-col gap-2">
         <h2 className="font-display text-lg text-lime">Placar ao vivo</h2>
         <p className="text-white/90">
-          Durante o jogo, o admin atualiza o placar parcial e a coluna <strong>“Pontos”</strong>{" "}
-          mostra quanto cada um faria <em>se o jogo terminasse naquele placar</em>. É só uma prévia —
-          a pontuação que conta é a do resultado final.
+          Durante o jogo, o placar parcial vai sendo atualizado e a coluna{" "}
+          <strong>“Pontos”</strong> mostra quanto cada um faria{" "}
+          <em>se o jogo terminasse naquele placar</em>. É só uma prévia — a pontuação que conta é a
+          do resultado final.
         </p>
       </section>
 
