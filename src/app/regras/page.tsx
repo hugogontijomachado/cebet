@@ -45,8 +45,7 @@ export default async function RegrasPage() {
         <p className="text-white/90">
           Durante o jogo, o placar parcial vai sendo atualizado e a coluna{" "}
           <strong>“Pontos”</strong> mostra quanto cada um faria{" "}
-          <em>se o jogo terminasse naquele placar</em>. É só uma prévia — a pontuação que conta é a
-          do resultado final.
+          <em>se o jogo terminasse naquele placar</em>.
         </p>
       </section>
 
