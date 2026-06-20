@@ -85,6 +85,7 @@ export function PredictionsTable({
   if (liveActive) {
     rows.sort((x, y) => (y.pts ?? 0) - (x.pts ?? 0) || x.bet.name.localeCompare(y.bet.name));
   }
+  const cravandoCount = liveActive ? rows.filter((r) => r.pts === 5).length : 0;
 
   return (
     <div
@@ -98,9 +99,16 @@ export function PredictionsTable({
         Palpites · {bets.length}
       </p>
       {liveActive && (
-        <p className="mb-2 text-center text-[10px] uppercase tracking-widest text-pink">
-          Classificação parcial · placar {live!.a} × {live!.b}
-        </p>
+        <>
+          <p className="text-center text-[10px] uppercase tracking-widest text-pink">
+            Classificação parcial · placar {live!.a} × {live!.b}
+          </p>
+          <p className="mb-2 text-center font-display text-base font-bold text-lime">
+            {cravandoCount > 0
+              ? `🎯 ${cravandoCount} ${cravandoCount === 1 ? "pessoa cravando" : "pessoas cravando"} o placar`
+              : "Ninguém cravando o placar ainda"}
+          </p>
+        </>
       )}
       {bets.length === 0 ? (
         <p className="text-center text-sm text-violet-mid">Ninguém palpitou ainda.</p>
