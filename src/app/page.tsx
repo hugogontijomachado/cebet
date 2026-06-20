@@ -62,13 +62,16 @@ export default async function Home() {
     resolvedWinners.length > 0
   );
 
-  // Match in progress with a preliminary score → focus on the standings, PIX goes to the bottom.
+  // Match in progress with a preliminary score → focus on the standings.
   const liveActive = !!(
     game &&
     game.status !== "resolved" &&
     game.live_a != null &&
     game.live_b != null
   );
+
+  // PIX stays at the top only while bets are open; otherwise it moves to the bottom.
+  const bettingOpen = !!(game && game.status === "open");
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center gap-8 px-4 py-10">
@@ -83,7 +86,7 @@ export default async function Home() {
       ) : (
         <PotDisplay value={pot} />
       )}
-      {!liveActive && <PixInfo betValue={Number(season.bet_value)} />}
+      {bettingOpen && <PixInfo betValue={Number(season.bet_value)} />}
 
       {!game ? (
         <p className="text-violet-mid">Aguardando o próximo jogo…</p>
@@ -131,7 +134,7 @@ export default async function Home() {
         </>
       )}
 
-      {liveActive && <PixInfo betValue={Number(season.bet_value)} />}
+      {!bettingOpen && <PixInfo betValue={Number(season.bet_value)} />}
 
       <div className="mt-4 flex gap-4">
         <Link href="/temporada" className="text-sm text-lime underline">
