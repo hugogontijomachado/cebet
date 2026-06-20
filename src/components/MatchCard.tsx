@@ -4,12 +4,14 @@ import { Flag } from "./Flag";
 export function MatchCard({ game }: { game: Game }) {
   const resolved = game.status === "resolved";
   return (
-    <div className="flex items-center justify-center gap-6 sm:gap-10">
+    <div className="flex items-center justify-center gap-4 sm:gap-10">
       <Team name={game.team_a_name} flag={game.team_a_flag} />
-      <div className="text-center font-display">
+      <div className="shrink-0 text-center font-display">
         {resolved ? (
-          <div className="text-5xl font-bold">
-            {game.result_a} <span className="text-violet-mid">x</span> {game.result_b}
+          <div className="flex items-center gap-2 text-5xl font-bold whitespace-nowrap">
+            <span>{game.result_a}</span>
+            <span className="text-3xl text-violet-mid">x</span>
+            <span>{game.result_b}</span>
           </div>
         ) : (
           <div className="text-3xl text-violet-mid">×</div>
