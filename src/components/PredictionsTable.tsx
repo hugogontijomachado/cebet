@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { setBetPaid, updateBetScore, deleteBet } from "@/app/actions/admin";
+import { computePoints } from "@/lib/scoring";
 import type { BetView } from "@/lib/queries";
 import type { Uuid } from "@/lib/types";
 
@@ -10,12 +11,21 @@ export function PredictionsTable({
   gameId,
   initial,
   isAdmin = false,
+  liveA = null,
+  liveB = null,
+  resolved = false,
 }: {
   gameId: Uuid;
   initial: BetView[];
   isAdmin?: boolean;
+  liveA?: number | null;
+  liveB?: number | null;
+  resolved?: boolean;
 }) {
   const [bets, setBets] = useState<BetView[]>(initial);
+  const [live, setLive] = useState<{ a: number; b: number } | null>(
+    liveA != null && liveB != null ? { a: liveA, b: liveB } : null,
+  );
 
   useEffect(() => {
     const sb = createBrowserSupabase();
@@ -23,7 +33,6 @@ export function PredictionsTable({
       .channel(`bets-table-${gameId}`)
       .on(
         "postgres_changes",
-        // "*" → catches inserts, edits, paid toggles, and deletes.
         { event: "*", schema: "public", table: "bets", filter: `game_id=eq.${gameId}` },
         async () => {
           const { data } = await sb
@@ -51,17 +60,41 @@ export function PredictionsTable({
           );
         },
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "games", filter: `id=eq.${gameId}` },
+        (payload) => {
+          const n = payload.new as { live_a: number | null; live_b: number | null };
+          setLive(n.live_a != null && n.live_b != null ? { a: n.live_a, b: n.live_b } : null);
+        },
+      )
       .subscribe();
     return () => {
       sb.removeChannel(channel);
     };
   }, [gameId]);
 
+  const liveActive = live != null && !resolved;
+
+  // When a live score is set, rank by "points if the game ended now".
+  const rows = bets.map((b) => ({
+    bet: b,
+    pts: liveActive ? computePoints({ a: b.predA, b: b.predB }, live!) : null,
+  }));
+  if (liveActive) {
+    rows.sort((x, y) => (y.pts ?? 0) - (x.pts ?? 0) || x.bet.name.localeCompare(y.bet.name));
+  }
+
   return (
     <div className="w-full max-w-sm">
       <p className="mb-2 text-center text-xs uppercase tracking-widest text-violet-mid">
         Palpites · {bets.length}
       </p>
+      {liveActive && (
+        <p className="mb-2 text-center text-[10px] uppercase tracking-widest text-pink">
+          Classificação parcial · placar {live!.a} × {live!.b}
+        </p>
+      )}
       {bets.length === 0 ? (
         <p className="text-center text-sm text-violet-mid">Ninguém palpitou ainda.</p>
       ) : (
@@ -70,13 +103,20 @@ export function PredictionsTable({
             <tr className="text-left text-[10px] uppercase tracking-widest text-violet-mid">
               <th className="pb-1">Nome</th>
               <th className="pb-1 text-center">Palpite</th>
+              {liveActive && <th className="pb-1 text-center">Agora</th>}
               <th className="pb-1 text-center">Pago</th>
               {isAdmin && <th className="pb-1 text-right">Ações</th>}
             </tr>
           </thead>
           <tbody>
-            {bets.map((b) => (
-              <BetRow key={b.id} bet={b} isAdmin={isAdmin} />
+            {rows.map(({ bet, pts }) => (
+              <BetRow
+                key={bet.id}
+                bet={bet}
+                isAdmin={isAdmin}
+                showLive={liveActive}
+                livePts={pts}
+              />
             ))}
           </tbody>
         </table>
@@ -90,7 +130,24 @@ export function PredictionsTable({
   );
 }
 
-function BetRow({ bet, isAdmin }: { bet: BetView; isAdmin: boolean }) {
+function LivePts({ pts }: { pts: number | null }) {
+  if (pts == null) return null;
+  if (pts === 5) return <span title="cravando">🎯</span>;
+  const color = pts >= 2 ? "text-lime" : pts === 1 ? "text-white" : "text-violet-mid";
+  return <span className={`font-display ${color}`}>{pts}</span>;
+}
+
+function BetRow({
+  bet,
+  isAdmin,
+  showLive,
+  livePts,
+}: {
+  bet: BetView;
+  isAdmin: boolean;
+  showLive: boolean;
+  livePts: number | null;
+}) {
   const [editing, setEditing] = useState(false);
   const [a, setA] = useState(String(bet.predA));
   const [b, setB] = useState(String(bet.predB));
@@ -111,8 +168,10 @@ function BetRow({ bet, isAdmin }: { bet: BetView; isAdmin: boolean }) {
     if (confirm(`Excluir o palpite de ${bet.name}?`)) start(() => deleteBet(bet.id));
   }
 
+  const exact = livePts === 5;
+
   return (
-    <tr className="border-b border-hairline-violet">
+    <tr className={`border-b border-hairline-violet ${exact ? "bg-lime/10" : ""}`}>
       <td className="py-2 pr-2">{bet.name}</td>
       <td className="py-2 text-center font-display text-lg">
         {editing ? (
@@ -137,6 +196,11 @@ function BetRow({ bet, isAdmin }: { bet: BetView; isAdmin: boolean }) {
           </>
         )}
       </td>
+      {showLive && (
+        <td className="py-2 text-center">
+          <LivePts pts={livePts} />
+        </td>
+      )}
       <td className="py-2 text-center">
         <PaidCell bet={bet} isAdmin={isAdmin} />
       </td>

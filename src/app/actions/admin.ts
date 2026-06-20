@@ -74,6 +74,15 @@ export async function deleteBet(betId: Uuid) {
   revalidatePath("/");
 }
 
+export async function setLiveScore(gameId: Uuid, a: number | null, b: number | null) {
+  await requireAdmin();
+  const valid = (n: number | null) => n === null || (Number.isInteger(n) && n >= 0);
+  if (!valid(a) || !valid(b)) return;
+  const sb = createAdmin();
+  await sb.from("games").update({ live_a: a, live_b: b }).eq("id", gameId);
+  revalidatePath("/");
+}
+
 export async function closeBetting(gameId: Uuid) {
   await requireAdmin();
   const sb = createAdmin();

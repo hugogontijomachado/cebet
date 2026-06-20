@@ -16,6 +16,7 @@ import { PixInfo } from "@/components/PixInfo";
 import { BetForm } from "@/components/BetForm";
 import { PredictionsTable } from "@/components/PredictionsTable";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
+import { LiveScore } from "@/components/LiveScore";
 import { SeasonCloseWatcher } from "@/components/SeasonCloseWatcher";
 import { ChampionView } from "@/components/ChampionView";
 import { isAdmin } from "@/lib/admin-auth";
@@ -82,6 +83,15 @@ export default async function Home() {
         <>
           <MatchCard game={game} />
 
+          {game.status !== "resolved" && (
+            <LiveScore
+              gameId={game.id}
+              initialA={game.live_a}
+              initialB={game.live_b}
+              isAdmin={admin}
+            />
+          )}
+
           <WinnerCelebration
             gameId={game.id}
             initialStatus={game.status}
@@ -106,6 +116,9 @@ export default async function Home() {
             gameId={game.id}
             initial={await getGameBets(game.id)}
             isAdmin={admin}
+            liveA={game.live_a}
+            liveB={game.live_b}
+            resolved={game.status === "resolved"}
           />
         </>
       )}

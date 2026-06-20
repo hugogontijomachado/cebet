@@ -38,7 +38,14 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
         </p>
       )}
 
-      <PredictionsTable gameId={game.id} initial={bets} isAdmin={admin} />
+      <PredictionsTable
+        gameId={game.id}
+        initial={bets}
+        isAdmin={admin}
+        liveA={game.live_a}
+        liveB={game.live_b}
+        resolved={game.status === "resolved"}
+      />
     </main>
   );
 }

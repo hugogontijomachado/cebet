@@ -26,6 +26,8 @@ export interface Game {
   team_b_name: string;
   team_b_flag: string;
   status: GameStatus;
+  live_a: number | null;
+  live_b: number | null;
   result_a: number | null;
   result_b: number | null;
   had_exact_winner: boolean;
