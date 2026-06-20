@@ -133,9 +133,14 @@ export default async function Home() {
 
       {liveActive && <PixInfo betValue={Number(season.bet_value)} />}
 
-      <Link href="/temporada" className="mt-4 text-sm text-lime underline">
-        Ver tabela da temporada →
-      </Link>
+      <div className="mt-4 flex gap-4">
+        <Link href="/temporada" className="text-sm text-lime underline">
+          Tabela da temporada →
+        </Link>
+        <Link href="/regras" className="text-sm text-violet-mid underline">
+          Regras
+        </Link>
+      </div>
     </main>
   );
 }

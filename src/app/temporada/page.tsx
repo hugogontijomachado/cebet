@@ -28,9 +28,14 @@ export default async function TemporadaPage() {
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-8 bg-paper p-6 text-ink">
       <header className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold">{season.name}</h1>
-        <Link href="/" className="text-sm text-violet-link underline">
-          ← Jogo atual
-        </Link>
+        <div className="flex gap-4">
+          <Link href="/regras" className="text-sm text-violet-link underline">
+            Regras
+          </Link>
+          <Link href="/" className="text-sm text-violet-link underline">
+            ← Jogo atual
+          </Link>
+        </div>
       </header>
 
       <section>

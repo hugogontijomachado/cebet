@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { setBetPaid, updateBetScore, deleteBet } from "@/app/actions/admin";
 import { computePoints } from "@/lib/scoring";
+import { PointsLegend } from "./PointsLegend";
 import type { BetView } from "@/lib/queries";
 import type { Uuid } from "@/lib/types";
 
@@ -109,7 +110,7 @@ export function PredictionsTable({
             <tr className="text-left text-[10px] uppercase tracking-widest text-violet-mid">
               <th className="pb-1">Nome</th>
               <th className="pb-1 text-center">Palpite</th>
-              {liveActive && <th className="pb-1 text-center">Agora</th>}
+              {liveActive && <th className="pb-1 text-center">Pontos</th>}
               <th className="pb-1 text-center">Pago</th>
               {isAdmin && <th className="pb-1 text-right">Ações</th>}
             </tr>
@@ -126,6 +127,11 @@ export function PredictionsTable({
             ))}
           </tbody>
         </table>
+      )}
+      {liveActive && (
+        <div className="mt-3 flex justify-center">
+          <PointsLegend />
+        </div>
       )}
       {isAdmin && bets.length > 0 && (
         <p className="mt-2 text-center text-[10px] uppercase tracking-widest text-violet-mid">
