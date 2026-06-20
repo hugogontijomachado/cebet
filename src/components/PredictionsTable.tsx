@@ -85,7 +85,6 @@ export function PredictionsTable({
   if (liveActive) {
     rows.sort((x, y) => (y.pts ?? 0) - (x.pts ?? 0) || x.bet.name.localeCompare(y.bet.name));
   }
-  const cravandoCount = liveActive ? rows.filter((r) => r.pts === 5).length : 0;
 
   return (
     <div
@@ -99,16 +98,9 @@ export function PredictionsTable({
         Palpites · {bets.length}
       </p>
       {liveActive && (
-        <>
-          <p className="text-center text-[10px] uppercase tracking-widest text-pink">
-            Classificação parcial · placar {live!.a} × {live!.b}
-          </p>
-          <p className="mb-2 text-center font-display text-base font-bold text-lime">
-            {cravandoCount > 0
-              ? `🎯 ${cravandoCount} ${cravandoCount === 1 ? "pessoa cravando" : "pessoas cravando"} o placar`
-              : "Ninguém cravando o placar ainda"}
-          </p>
-        </>
+        <p className="mb-2 text-center text-[10px] uppercase tracking-widest text-pink">
+          Classificação parcial · placar {live!.a} × {live!.b}
+        </p>
       )}
       {bets.length === 0 ? (
         <p className="text-center text-sm text-violet-mid">Ninguém palpitou ainda.</p>
@@ -152,7 +144,16 @@ export function PredictionsTable({
 
 function LivePts({ pts }: { pts: number | null }) {
   if (pts == null) return null;
-  if (pts === 5) return <span title="cravando">🎯</span>;
+  if (pts === 5) {
+    return (
+      <span
+        title="cravou o placar"
+        className="inline-block min-w-[1.5rem] rounded-md bg-lime px-1.5 py-0.5 font-display text-base font-bold text-ink-deep"
+      >
+        5
+      </span>
+    );
+  }
   const color = pts >= 2 ? "text-lime" : pts === 1 ? "text-white" : "text-violet-mid";
   return <span className={`font-display ${color}`}>{pts}</span>;
 }
