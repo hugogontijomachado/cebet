@@ -37,6 +37,16 @@ export function WinnerCelebration({
   const [overlay, setOverlay] = useState(false);
   const fired = useRef(false);
 
+  // Auto-celebrate on every access while the latest game is decided with a winner.
+  useEffect(() => {
+    if (initialStatus === "resolved" && initialWinners.length > 0 && !fired.current) {
+      fired.current = true;
+      setOverlay(true);
+      celebrate();
+    }
+  }, [initialStatus, initialWinners]);
+
+  // Live: celebrate the exact moment the game resolves.
   useEffect(() => {
     const sb = createBrowserSupabase();
     const channel = sb
@@ -87,41 +97,31 @@ export function WinnerCelebration({
 
   const hasWinner = winners.length > 0;
   const prizeLabel =
-    pot != null ? `${winners.length > 1 ? "dividem" : "leva"} ${formatBRL(pot)}` : null;
+    pot != null
+      ? `${winners.length > 1 ? "dividem" : "leva"} ${formatBRL(Number(pot))}`
+      : null;
 
   return (
     <>
-      <div className="rounded-xxl bg-night px-6 py-5 text-center ring-1 ring-hairline-violet">
-        {hasWinner ? (
-          <>
-            <p className="text-xs uppercase tracking-widest text-violet-mid">Cravou o placar! 🎉</p>
-            <p className="mt-1 font-display text-3xl font-bold text-lime">{winners.join(" · ")}</p>
-            {result && (
-              <p className="mt-1 text-sm text-white">
-                {teamAName} {result.a} × {result.b} {teamBName}
-              </p>
-            )}
-            {prizeLabel && <p className="mt-1 font-display text-lg text-white">{prizeLabel} 💰</p>}
-            <button
-              type="button"
-              onClick={() => {
-                setOverlay(true);
-                celebrate();
-              }}
-              className="mt-3 rounded-md bg-white/10 px-3 py-1 text-xs uppercase tracking-wide text-white"
-            >
-              Ver de novo 🎉
-            </button>
-          </>
-        ) : (
-          <>
-            <p className="font-display text-2xl font-bold text-pink">Acumulou! 💰</p>
-            <p className="mt-1 text-sm text-violet-mid">
-              Ninguém cravou — o bolão segue acumulando.
-            </p>
-          </>
-        )}
-      </div>
+      {hasWinner ? (
+        <button
+          type="button"
+          onClick={() => {
+            setOverlay(true);
+            celebrate();
+          }}
+          className="rounded-md bg-white/10 px-3 py-1 text-xs uppercase tracking-wide text-white"
+        >
+          Ver a festa de novo 🎉
+        </button>
+      ) : (
+        <div className="rounded-xxl bg-night px-6 py-5 text-center ring-1 ring-hairline-violet">
+          <p className="font-display text-2xl font-bold text-pink">Acumulou! 💰</p>
+          <p className="mt-1 text-sm text-violet-mid">
+            Ninguém cravou — o bolão segue acumulando.
+          </p>
+        </div>
+      )}
 
       {overlay && hasWinner && (
         <div

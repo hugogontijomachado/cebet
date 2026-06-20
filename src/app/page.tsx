@@ -11,6 +11,7 @@ import {
 } from "@/lib/queries";
 import { MatchCard } from "@/components/MatchCard";
 import { PotDisplay } from "@/components/PotDisplay";
+import { WonPot } from "@/components/WonPot";
 import { PixInfo } from "@/components/PixInfo";
 import { BetForm } from "@/components/BetForm";
 import { PredictionsTable } from "@/components/PredictionsTable";
@@ -52,6 +53,14 @@ export default async function Home() {
           ?.winners ?? []
       : [];
 
+  // Latest game decided with a winner, no new game yet → show who won + prize.
+  const justWon = !!(
+    game &&
+    game.status === "resolved" &&
+    game.had_exact_winner &&
+    resolvedWinners.length > 0
+  );
+
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center gap-8 px-4 py-10">
       <SeasonCloseWatcher seasonId={season.id} />
@@ -60,7 +69,11 @@ export default async function Home() {
         <h1 className="font-display text-3xl font-bold">Bolão CEMEP</h1>
       </header>
 
-      <PotDisplay value={pot} />
+      {justWon ? (
+        <WonPot winners={resolvedWinners} prize={Number(game!.pot_amount ?? 0)} />
+      ) : (
+        <PotDisplay value={pot} />
+      )}
       <PixInfo betValue={Number(season.bet_value)} />
 
       {!game ? (
