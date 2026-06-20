@@ -86,7 +86,13 @@ export function PredictionsTable({
   }
 
   return (
-    <div className="w-full max-w-sm">
+    <div
+      className={
+        liveActive
+          ? "w-full max-w-sm rounded-xl bg-night/40 p-3 ring-1 ring-pink/50"
+          : "w-full max-w-sm"
+      }
+    >
       <p className="mb-2 text-center text-xs uppercase tracking-widest text-violet-mid">
         Palpites · {bets.length}
       </p>

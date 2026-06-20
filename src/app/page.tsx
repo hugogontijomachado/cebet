@@ -62,6 +62,14 @@ export default async function Home() {
     resolvedWinners.length > 0
   );
 
+  // Match in progress with a preliminary score → focus on the standings, PIX goes to the bottom.
+  const liveActive = !!(
+    game &&
+    game.status !== "resolved" &&
+    game.live_a != null &&
+    game.live_b != null
+  );
+
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center gap-8 px-4 py-10">
       <SeasonCloseWatcher seasonId={season.id} />
@@ -75,7 +83,7 @@ export default async function Home() {
       ) : (
         <PotDisplay value={pot} />
       )}
-      <PixInfo betValue={Number(season.bet_value)} />
+      {!liveActive && <PixInfo betValue={Number(season.bet_value)} />}
 
       {!game ? (
         <p className="text-violet-mid">Aguardando o próximo jogo…</p>
@@ -122,6 +130,8 @@ export default async function Home() {
           />
         </>
       )}
+
+      {liveActive && <PixInfo betValue={Number(season.bet_value)} />}
 
       <Link href="/temporada" className="mt-4 text-sm text-lime underline">
         Ver tabela da temporada →

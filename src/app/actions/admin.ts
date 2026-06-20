@@ -86,7 +86,12 @@ export async function setLiveScore(gameId: Uuid, a: number | null, b: number | n
 export async function closeBetting(gameId: Uuid) {
   await requireAdmin();
   const sb = createAdmin();
-  await sb.from("games").update({ status: "closed" }).eq("id", gameId).eq("status", "open");
+  // Closing betting kicks off the live score at 0x0 for the admin to update.
+  await sb
+    .from("games")
+    .update({ status: "closed", live_a: 0, live_b: 0 })
+    .eq("id", gameId)
+    .eq("status", "open");
   revalidatePath("/admin");
   revalidatePath("/");
 }
