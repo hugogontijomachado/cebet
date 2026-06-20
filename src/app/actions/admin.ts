@@ -20,11 +20,27 @@ export async function createSeason(formData: FormData) {
   await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
   const betValue = Number(formData.get("betValue") ?? 5);
+  const pixName = String(formData.get("pixName") ?? "").trim() || "Deborah";
+  const pixKey = String(formData.get("pixKey") ?? "").trim() || "62991711700";
   if (!name) return;
   const sb = createAdmin();
-  await sb.from("seasons").insert({ name, bet_value: betValue, status: "active" });
+  await sb
+    .from("seasons")
+    .insert({ name, bet_value: betValue, status: "active", pix_name: pixName, pix_key: pixKey });
   revalidatePath("/admin");
   revalidatePath("/");
+}
+
+export async function updatePix(formData: FormData) {
+  await requireAdmin();
+  const seasonId = String(formData.get("seasonId") ?? "");
+  const pixName = String(formData.get("pixName") ?? "").trim();
+  const pixKey = String(formData.get("pixKey") ?? "").trim();
+  if (!seasonId || !pixName || !pixKey) return;
+  const sb = createAdmin();
+  await sb.from("seasons").update({ pix_name: pixName, pix_key: pixKey }).eq("id", seasonId);
+  revalidatePath("/");
+  revalidatePath("/admin");
 }
 
 export async function createGame(formData: FormData) {

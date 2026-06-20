@@ -7,6 +7,8 @@ export interface Season {
   bet_value: number;
   status: "active" | "closed";
   champion_participant_id: Uuid | null;
+  pix_name: string;
+  pix_key: string;
   created_at: string;
 }
 

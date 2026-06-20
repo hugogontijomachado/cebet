@@ -9,9 +9,6 @@ export function WonPot({ winners, prize }: { winners: string[]; prize: number })
       <span className="font-display text-base text-white">
         {winners.length > 1 ? "levaram" : "levou"} {formatBRL(prize)} 💰
       </span>
-      <span className="text-[10px] uppercase tracking-widest text-violet-mid">
-        Recomeça no próximo jogo
-      </span>
     </div>
   );
 }

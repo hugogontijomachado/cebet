@@ -37,14 +37,16 @@ export function WinnerCelebration({
   const [overlay, setOverlay] = useState(false);
   const fired = useRef(false);
 
-  // Auto-celebrate on every access while the latest game is decided with a winner.
+  // Celebrate once per device: if this device hasn't seen this game's party yet, play it.
   useEffect(() => {
-    if (initialStatus === "resolved" && initialWinners.length > 0 && !fired.current) {
-      fired.current = true;
-      setOverlay(true);
-      celebrate();
-    }
-  }, [initialStatus, initialWinners]);
+    if (initialStatus !== "resolved" || initialWinners.length === 0 || fired.current) return;
+    const key = `bolao_party_${gameId}`;
+    if (typeof window !== "undefined" && localStorage.getItem(key)) return; // já viu neste aparelho
+    fired.current = true;
+    if (typeof window !== "undefined") localStorage.setItem(key, "1");
+    setOverlay(true);
+    celebrate();
+  }, [initialStatus, initialWinners, gameId]);
 
   // Live: celebrate the exact moment the game resolves.
   useEffect(() => {
@@ -81,6 +83,7 @@ export function WinnerCelebration({
             }
             setWinners(w);
             if (w.length > 0) {
+              if (typeof window !== "undefined") localStorage.setItem(`bolao_party_${gameId}`, "1");
               setOverlay(true);
               celebrate();
             }

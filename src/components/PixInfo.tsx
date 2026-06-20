@@ -3,15 +3,20 @@
 import { useState } from "react";
 import { formatBRL } from "@/lib/money";
 
-const PIX_NAME = "Deborah";
-const PIX_KEY = "62991711700";
-
-export function PixInfo({ betValue }: { betValue: number }) {
+export function PixInfo({
+  betValue,
+  name,
+  pixKey,
+}: {
+  betValue: number;
+  name: string;
+  pixKey: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
     try {
-      await navigator.clipboard.writeText(PIX_KEY);
+      await navigator.clipboard.writeText(pixKey);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -24,14 +29,14 @@ export function PixInfo({ betValue }: { betValue: number }) {
       <span className="text-xs uppercase tracking-widest text-violet-mid">
         Aposta {formatBRL(betValue)} · pague no PIX
       </span>
-      <span className="font-display text-lg">{PIX_NAME}</span>
+      <span className="font-display text-lg">{name}</span>
       <button
         type="button"
         onClick={copy}
         aria-label="Copiar chave PIX"
         className="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 font-ui text-sm font-bold text-ink-deep transition active:scale-95"
       >
-        <span className="select-all tracking-wide">{PIX_KEY}</span>
+        <span className="select-all tracking-wide">{pixKey}</span>
         <span className="text-xs uppercase">{copied ? "✓ copiado" : "📋 copiar"}</span>
       </button>
     </div>

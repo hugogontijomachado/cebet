@@ -1,5 +1,5 @@
 import { isAdmin } from "@/lib/admin-auth";
-import { loginAdmin, createSeason, createGame } from "@/app/actions/admin";
+import { loginAdmin, createSeason, createGame, updatePix } from "@/app/actions/admin";
 import { getActiveSeason, getCurrentGame } from "@/lib/queries";
 import { FlagPicker } from "@/components/FlagPicker";
 import { GameControls, CloseSeasonButton } from "@/components/admin/AdminControls";
@@ -59,6 +59,24 @@ export default async function AdminPage({
                 className="rounded-sm border border-hairline-cool px-3 py-2"
               />
             </label>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="flex flex-col gap-1 text-sm">
+                Nome do PIX
+                <input
+                  name="pixName"
+                  defaultValue="Deborah"
+                  className="rounded-sm border border-hairline-cool px-3 py-2"
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                Chave PIX
+                <input
+                  name="pixKey"
+                  defaultValue="62991711700"
+                  className="rounded-sm border border-hairline-cool px-3 py-2"
+                />
+              </label>
+            </div>
             <button className="rounded-md bg-primary px-4 py-2 text-sm font-bold uppercase text-white">
               Criar temporada
             </button>
@@ -74,6 +92,34 @@ export default async function AdminPage({
               </p>
             </div>
             <CloseSeasonButton seasonId={season.id} />
+          </section>
+
+          <section className="flex flex-col gap-3 rounded-xl border border-hairline-cloud p-5">
+            <h2 className="font-display text-lg">Chave PIX (mensagem de pagamento)</h2>
+            <form action={updatePix} className="flex flex-col gap-3">
+              <input type="hidden" name="seasonId" value={season.id} />
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1 text-sm">
+                  Nome da pessoa
+                  <input
+                    name="pixName"
+                    defaultValue={season.pix_name}
+                    className="rounded-sm border border-hairline-cool px-3 py-2"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  Chave PIX (copiável)
+                  <input
+                    name="pixKey"
+                    defaultValue={season.pix_key}
+                    className="rounded-sm border border-hairline-cool px-3 py-2"
+                  />
+                </label>
+              </div>
+              <button className="rounded-md bg-primary px-4 py-2 text-sm font-bold uppercase text-white">
+                Salvar PIX
+              </button>
+            </form>
           </section>
 
           <section className="flex flex-col gap-3 rounded-xl border border-hairline-cloud p-5">

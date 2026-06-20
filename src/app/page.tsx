@@ -13,6 +13,7 @@ import { MatchCard } from "@/components/MatchCard";
 import { PotDisplay } from "@/components/PotDisplay";
 import { WonPot } from "@/components/WonPot";
 import { PixInfo } from "@/components/PixInfo";
+import { PixWhenUnpaid } from "@/components/PixWhenUnpaid";
 import { BetForm } from "@/components/BetForm";
 import { PredictionsTable } from "@/components/PredictionsTable";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
@@ -47,6 +48,8 @@ export default async function Home() {
 
   const game = await getCurrentGame(season.id);
   const pot = await getCurrentPot(season, game);
+  const gameBets = game ? await getGameBets(game.id) : [];
+  const allPaid = gameBets.length > 0 && gameBets.every((b) => b.paid);
 
   const resolvedWinners =
     game && game.status === "resolved"
@@ -78,7 +81,9 @@ export default async function Home() {
       ) : (
         <PotDisplay value={pot} />
       )}
-      {bettingOpen && <PixInfo betValue={Number(season.bet_value)} />}
+      {bettingOpen && (
+        <PixInfo betValue={Number(season.bet_value)} name={season.pix_name} pixKey={season.pix_key} />
+      )}
 
       {!game ? (
         <p className="text-violet-mid">Aguardando o próximo jogo…</p>
@@ -117,7 +122,7 @@ export default async function Home() {
 
           <PredictionsTable
             gameId={game.id}
-            initial={await getGameBets(game.id)}
+            initial={gameBets}
             isAdmin={admin}
             liveA={game.live_a}
             liveB={game.live_b}
@@ -128,7 +133,15 @@ export default async function Home() {
         </>
       )}
 
-      {!bettingOpen && <PixInfo betValue={Number(season.bet_value)} />}
+      {!bettingOpen && (
+        <PixWhenUnpaid
+          gameId={game?.id ?? null}
+          betValue={Number(season.bet_value)}
+          name={season.pix_name}
+          pixKey={season.pix_key}
+          initialAllPaid={allPaid}
+        />
+      )}
 
       <div className="mt-4 flex gap-4">
         <Link href="/temporada" className="text-sm text-lime underline">
