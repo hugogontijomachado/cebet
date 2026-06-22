@@ -1,7 +1,14 @@
 # Bolão CEMEP — Design
 
 **Data:** 2026-06-19
-**Status:** Aprovado (aguardando revisão final do spec)
+**Status:** Implementado e em produção. Este spec é histórico (estado original).
+
+> **Estado atual → ver `CLAUDE.md`.** O app evoluiu além deste documento. Adições
+> posteriores: placar ao vivo + classificação parcial/final, status de pagamento
+> (`paid`) por palpite, PIX configurável (nome + chave, editável em `/admin`),
+> página por jogo (`/jogo/[id]`), tela de campeão da temporada, página `/regras`.
+> A decisão original de **ocultar palpites até a apuração foi revertida** — hoje a
+> tabela de palpites é pública (transparência total).
 
 ## Resumo
 
