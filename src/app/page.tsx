@@ -92,7 +92,8 @@ export default async function Home() {
         <>
           <MatchCard game={game} />
 
-          {game.status !== "resolved" && (
+          {/* Placar parcial só existe depois do apito (apostas encerradas). */}
+          {game.status === "closed" && (
             <LiveScore
               gameId={game.id}
               initialA={game.live_a}
