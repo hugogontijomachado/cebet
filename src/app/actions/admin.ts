@@ -71,7 +71,9 @@ export async function createGame(formData: FormData) {
 export async function setBetPaid(betId: Uuid, paid: boolean) {
   await requireAdmin();
   const sb = createAdmin();
-  await sb.from("bets").update({ paid }).eq("id", betId);
+  // Pagar restaura um palpite excluído; despagar não re-exclui.
+  const patch = paid ? { paid, excluded: false } : { paid };
+  await sb.from("bets").update(patch).eq("id", betId);
   revalidatePath("/");
 }
 
@@ -103,11 +105,17 @@ export async function closeBetting(gameId: Uuid) {
   await requireAdmin();
   const sb = createAdmin();
   // Closing betting kicks off the live score at 0x0 for the admin to update.
-  await sb
+  const { data: closed } = await sb
     .from("games")
     .update({ status: "closed", live_a: 0, live_b: 0 })
     .eq("id", gameId)
-    .eq("status", "open");
+    .eq("status", "open")
+    .select("id")
+    .maybeSingle();
+  // Só excluímos se a transição open→closed realmente aconteceu agora.
+  if (closed) {
+    await sb.from("bets").update({ excluded: true }).eq("game_id", gameId).eq("paid", false);
+  }
   revalidatePath("/admin");
   revalidatePath("/");
 }
@@ -121,7 +129,11 @@ export async function resolveGame(gameId: Uuid, resultA: number, resultB: number
   const { data: game } = await sb.from("games").select("*").eq("id", gameId).maybeSingle();
   if (!game || game.status !== "closed") return;
 
-  const { data: bets } = await sb.from("bets").select("id, pred_a, pred_b").eq("game_id", gameId);
+  const { data: bets } = await sb
+    .from("bets")
+    .select("id, pred_a, pred_b")
+    .eq("game_id", gameId)
+    .eq("excluded", false);
   const rows = (bets as { id: string; pred_a: number; pred_b: number }[]) ?? [];
 
   let hadExact = false;
