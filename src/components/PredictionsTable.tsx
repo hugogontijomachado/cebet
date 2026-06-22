@@ -46,7 +46,7 @@ export function PredictionsTable({
         async () => {
           const { data } = await sb
             .from("bets")
-            .select("id, pred_a, pred_b, paid, participants(name)")
+            .select("id, pred_a, pred_b, paid, excluded, participants(name)")
             .eq("game_id", gameId)
             .order("created_at", { ascending: true });
           type Row = {
@@ -54,6 +54,7 @@ export function PredictionsTable({
             pred_a: number;
             pred_b: number;
             paid: boolean;
+            excluded: boolean;
             participants: { name: string } | null;
           };
           setBets(
@@ -64,6 +65,7 @@ export function PredictionsTable({
                 predA: r.pred_a,
                 predB: r.pred_b,
                 paid: r.paid,
+                excluded: r.excluded,
               }))
               .filter((b) => b.name),
           );
