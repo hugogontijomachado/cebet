@@ -45,5 +45,6 @@ export interface Bet {
   pred_b: number;
   points: number | null;
   paid: boolean;
+  excluded: boolean;
   created_at: string;
 }

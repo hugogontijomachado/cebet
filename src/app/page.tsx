@@ -49,7 +49,8 @@ export default async function Home() {
   const game = await getCurrentGame(season.id);
   const pot = await getCurrentPot(season, game);
   const gameBets = game ? await getGameBets(game.id) : [];
-  const allPaid = gameBets.length > 0 && gameBets.every((b) => b.paid);
+  const allPaid =
+    gameBets.some((b) => !b.excluded) && gameBets.every((b) => b.excluded || b.paid);
 
   const resolvedWinners =
     game && game.status === "resolved"

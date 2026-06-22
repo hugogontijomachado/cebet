@@ -43,6 +43,7 @@ export interface BetView {
   predA: number;
   predB: number;
   paid: boolean;
+  excluded: boolean;
 }
 
 /** All predictions for a game (name + score + paid), visible to everyone. */
@@ -50,7 +51,7 @@ export async function getGameBets(gameId: Uuid): Promise<BetView[]> {
   const sb = createServerRead();
   const { data } = await sb
     .from("bets")
-    .select("id, pred_a, pred_b, paid, participants(name)")
+    .select("id, pred_a, pred_b, paid, excluded, participants(name)")
     .eq("game_id", gameId)
     .order("created_at", { ascending: true });
   type Row = {
@@ -58,6 +59,7 @@ export async function getGameBets(gameId: Uuid): Promise<BetView[]> {
     pred_a: number;
     pred_b: number;
     paid: boolean;
+    excluded: boolean;
     participants: { name: string } | null;
   };
   return ((data as unknown as Row[]) ?? [])
@@ -67,6 +69,7 @@ export async function getGameBets(gameId: Uuid): Promise<BetView[]> {
       predA: r.pred_a,
       predB: r.pred_b,
       paid: r.paid,
+      excluded: r.excluded,
     }))
     .filter((b) => b.name);
 }
@@ -84,6 +87,7 @@ export async function getResolvedSummaries(seasonId: Uuid): Promise<GameBetSumma
     .select("had_exact_winner, bets(count)")
     .eq("season_id", seasonId)
     .eq("status", "resolved")
+    .eq("bets.excluded", false)
     .order("game_order", { ascending: true });
   type Row = { had_exact_winner: boolean; bets: { count: number }[] };
   return ((data as Row[]) ?? []).map((g) => ({
@@ -100,7 +104,8 @@ export async function getCurrentPot(season: Season, currentGame: Game | null): P
     const { count } = await sb
       .from("bets")
       .select("*", { count: "exact", head: true })
-      .eq("game_id", currentGame.id);
+      .eq("game_id", currentGame.id)
+      .eq("excluded", false);
     currentBetCount = count ?? 0;
   }
   return computePot(Number(season.bet_value), carriedBetCount(summaries), currentBetCount);
@@ -121,7 +126,8 @@ export async function getLeaderboard(seasonId: Uuid): Promise<LeaderRow[]> {
       "participant_id, pred_a, pred_b, points, games!inner(season_id, status, result_a, result_b)",
     )
     .eq("games.season_id", seasonId)
-    .eq("games.status", "resolved");
+    .eq("games.status", "resolved")
+    .eq("excluded", false);
   type Row = {
     participant_id: Uuid;
     pred_a: number;
@@ -196,7 +202,8 @@ export async function getResolvedGamesWithWinners(
       const { data: bd } = await sb
         .from("bets")
         .select("pred_a, pred_b, participants(name)")
-        .eq("game_id", g.id);
+        .eq("game_id", g.id)
+        .eq("excluded", false);
       type BRow = { pred_a: number; pred_b: number; participants: { name: string } | null };
       winners = ((bd as unknown as BRow[]) ?? [])
         .filter((b) => b.pred_a === g.result_a && b.pred_b === g.result_b)

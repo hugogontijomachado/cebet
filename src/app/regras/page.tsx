@@ -33,6 +33,16 @@ export default async function RegrasPage() {
       </section>
 
       <section className="flex flex-col gap-2">
+        <h2 className="font-display text-lg text-lime">Pagamento</h2>
+        <p className="text-white/90">
+          Pague seu palpite <strong>antes do apito inicial</strong>. Quando o jogo começa, os
+          palpites <strong>não pagos são automaticamente excluídos</strong>: não valem pontos nem
+          entram no bolão. Se você pagar em cima da hora, o palpite pode ser{" "}
+          <strong>restaurado</strong>.
+        </p>
+      </section>
+
+      <section className="flex flex-col gap-2">
         <h2 className="font-display text-lg text-lime">Campeão da temporada</h2>
         <p className="text-white/90">
           No fim da temporada, quem somou <strong>mais pontos</strong> é o campeão — e leva o bolão
