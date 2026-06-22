@@ -202,7 +202,8 @@ export async function getResolvedGamesWithWinners(
       const { data: bd } = await sb
         .from("bets")
         .select("pred_a, pred_b, participants(name)")
-        .eq("game_id", g.id);
+        .eq("game_id", g.id)
+        .eq("excluded", false);
       type BRow = { pred_a: number; pred_b: number; participants: { name: string } | null };
       winners = ((bd as unknown as BRow[]) ?? [])
         .filter((b) => b.pred_a === g.result_a && b.pred_b === g.result_b)

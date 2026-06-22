@@ -74,7 +74,8 @@ export function WinnerCelebration({
               const { data } = await sb
                 .from("bets")
                 .select("pred_a, pred_b, participants(name)")
-                .eq("game_id", gameId);
+                .eq("game_id", gameId)
+                .eq("excluded", false);
               type R = { pred_a: number; pred_b: number; participants: { name: string } | null };
               w = ((data as unknown as R[]) ?? [])
                 .filter((b) => b.pred_a === n.result_a && b.pred_b === n.result_b)

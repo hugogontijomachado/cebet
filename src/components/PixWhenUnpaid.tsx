@@ -30,9 +30,9 @@ export function PixWhenUnpaid({
         "postgres_changes",
         { event: "*", schema: "public", table: "bets", filter: `game_id=eq.${gameId}` },
         async () => {
-          const { data } = await sb.from("bets").select("paid").eq("game_id", gameId);
-          const rows = (data ?? []) as { paid: boolean }[];
-          setAllPaid(rows.length > 0 && rows.every((r) => r.paid));
+          const { data } = await sb.from("bets").select("paid, excluded").eq("game_id", gameId);
+          const rows = (data ?? []) as { paid: boolean; excluded: boolean }[];
+          setAllPaid(rows.some((r) => !r.excluded) && rows.every((r) => r.excluded || r.paid));
         },
       )
       .subscribe();
