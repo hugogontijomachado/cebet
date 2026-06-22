@@ -96,11 +96,15 @@ export function PredictionsTable({
     };
   }, [gameId]);
 
+  // Excluídos (não pagos no apito) saem da classificação e da contagem pública.
+  const valid = bets.filter((b) => !b.excluded);
+  const excluded = bets.filter((b) => b.excluded);
+
   // Score the standings against: the final result if resolved, else the live (preliminary) score.
   const score = isResolved ? final : live;
   const ranked = score != null;
 
-  const rows = bets.map((b) => ({
+  const rows = valid.map((b) => ({
     bet: b,
     pts: ranked ? computePoints({ a: b.predA, b: b.predB }, score!) : null,
   }));
@@ -117,7 +121,7 @@ export function PredictionsTable({
       }
     >
       <p className="mb-2 text-center text-xs uppercase tracking-widest text-violet-mid">
-        Palpites · {bets.length}
+        Palpites · {valid.length}
       </p>
       {ranked && (
         <p
@@ -129,7 +133,7 @@ export function PredictionsTable({
           {score!.b}
         </p>
       )}
-      {bets.length === 0 ? (
+      {valid.length === 0 ? (
         <p className="text-center text-sm text-violet-mid">Ninguém palpitou ainda.</p>
       ) : (
         <table className="w-full border-collapse">
@@ -146,6 +150,28 @@ export function PredictionsTable({
             {rows.map(({ bet, pts }) => (
               <BetRow key={bet.id} bet={bet} isAdmin={isAdmin} showPts={ranked} pts={pts} />
             ))}
+            {isAdmin && excluded.length > 0 && (
+              <>
+                <tr>
+                  <td
+                    colSpan={ranked ? (isAdmin ? 5 : 4) : isAdmin ? 4 : 3}
+                    className="pt-3 text-center text-[10px] uppercase tracking-widest text-violet-mid"
+                  >
+                    Excluídos (não pagos)
+                  </td>
+                </tr>
+                {excluded.map((bet) => (
+                  <BetRow
+                    key={bet.id}
+                    bet={bet}
+                    isAdmin={isAdmin}
+                    showPts={ranked}
+                    pts={null}
+                    excluded
+                  />
+                ))}
+              </>
+            )}
           </tbody>
         </table>
       )}
@@ -174,11 +200,13 @@ function BetRow({
   isAdmin,
   showPts,
   pts,
+  excluded = false,
 }: {
   bet: BetView;
   isAdmin: boolean;
   showPts: boolean;
   pts: number | null;
+  excluded?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [a, setA] = useState(String(bet.predA));
@@ -203,7 +231,11 @@ function BetRow({
   const exact = pts === 5;
 
   return (
-    <tr className={`border-b border-hairline-violet ${exact ? "bg-lime/10" : ""}`}>
+    <tr
+      className={`border-b border-hairline-violet ${exact ? "bg-lime/10" : ""} ${
+        excluded ? "text-violet-mid/60 line-through" : ""
+      }`}
+    >
       <td className="py-2 pr-2">{bet.name}</td>
       <td className="py-2 text-center font-display text-lg">
         {editing ? (
