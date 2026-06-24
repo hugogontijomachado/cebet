@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Rubik, Space_Grotesk } from "next/font/google";
+import { ResponsibleGamingNotice } from "@/components/ResponsibleGamingNotice";
 
 const ui = Rubik({ subsets: ["latin"], variable: "--font-ui" });
 const display = Space_Grotesk({
@@ -17,7 +18,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`${ui.variable} ${display.variable}`}>
-      <body className="font-ui bg-canvas text-white antialiased">{children}</body>
+      <body className="font-ui bg-canvas text-white antialiased">
+        {children}
+        <ResponsibleGamingNotice />
+      </body>
     </html>
   );
 }
