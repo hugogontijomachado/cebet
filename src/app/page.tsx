@@ -13,7 +13,6 @@ import { MatchCard } from "@/components/MatchCard";
 import { PotDisplay } from "@/components/PotDisplay";
 import { WonPot } from "@/components/WonPot";
 import { PixInfo } from "@/components/PixInfo";
-import { PixWhenUnpaid } from "@/components/PixWhenUnpaid";
 import { BetForm } from "@/components/BetForm";
 import { PredictionsTable } from "@/components/PredictionsTable";
 import { WinnerCelebration } from "@/components/WinnerCelebration";
@@ -49,8 +48,6 @@ export default async function Home() {
   const game = await getCurrentGame(season.id);
   const pot = await getCurrentPot(season, game);
   const gameBets = game ? await getGameBets(game.id) : [];
-  const allPaid =
-    gameBets.some((b) => !b.excluded) && gameBets.every((b) => b.excluded || b.paid);
 
   const resolvedWinners =
     game && game.status === "resolved"
@@ -66,7 +63,8 @@ export default async function Home() {
     resolvedWinners.length > 0
   );
 
-  // PIX stays at the top only while bets are open; otherwise it moves to the bottom.
+  // PIX (com o meme) fica no topo enquanto as apostas estão abertas;
+  // depois de encerradas, desce para o rodapé, abaixo dos links.
   const bettingOpen = !!(game && game.status === "open");
 
   return (
@@ -136,16 +134,6 @@ export default async function Home() {
         </>
       )}
 
-      {!bettingOpen && (
-        <PixWhenUnpaid
-          gameId={game?.id ?? null}
-          betValue={Number(season.bet_value)}
-          name={season.pix_name}
-          pixKey={season.pix_key}
-          initialAllPaid={allPaid}
-        />
-      )}
-
       <div className="mt-4 flex gap-4">
         <Link href="/temporada" className="text-sm text-lime underline">
           Tabela da temporada →
@@ -154,6 +142,11 @@ export default async function Home() {
           Regras
         </Link>
       </div>
+
+      {/* Apostas encerradas: o PIX (com o meme) desce para o rodapé, abaixo dos links. */}
+      {game && !bettingOpen && (
+        <PixInfo betValue={Number(season.bet_value)} name={season.pix_name} pixKey={season.pix_key} />
+      )}
     </main>
   );
 }

@@ -51,7 +51,7 @@ There is no separate lint/test CI gate; `npm run build` is the type gate. Tests 
 - `WinnerCelebration` — fires confetti + synthesized fanfare (`sound.ts`, Web Audio, no asset) when a game resolves with a winner. Gated **once per device** via `localStorage` key `bolao_party_${gameId}`.
 - `SeasonCloseWatcher` — `router.refresh()` when the season closes, so everyone lands on the champion screen.
 
-**`src/app/page.tsx` (home) is the state orchestrator.** It derives flags from the current game and renders accordingly: `bettingOpen` (PIX at top; otherwise PIX moves to bottom and hides once `allPaid`), `liveActive`/resolved (standings table + score column), `justWon` (`WonPot` shows winner + prize instead of the R$0 pot). Other routes: `/temporada` (leaderboard + clickable game history), `/jogo/[id]` (per-game detail + payment management for past games), `/admin` (PIN-gated controls), `/regras` (rules).
+**`src/app/page.tsx` (home) is the state orchestrator.** It derives flags from the current game and renders accordingly: `bettingOpen` (PIX **with the meme** at top while bets are open; once closed/resolved the same `PixInfo` block moves to the page bottom, **below** the temporada/regras links, and stays visible), `liveActive`/resolved (standings table + score column), `justWon` (`WonPot` shows winner + prize instead of the R$0 pot). Other routes: `/temporada` (leaderboard + clickable game history), `/jogo/[id]` (per-game detail + payment management for past games), `/admin` (PIN-gated controls), `/regras` (rules).
 
 ## Conventions & gotchas
 
