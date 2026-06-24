@@ -25,6 +25,13 @@ export function PixInfo({
   }
 
   return (
+    <div className="flex flex-col items-center gap-3">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/pix-meme.webp"
+        alt=""
+        className="w-44 rounded-xl drop-shadow-lg sm:w-52"
+      />
     <div className="flex flex-col items-center gap-2 rounded-xl border border-hairline-violet bg-night/60 px-6 py-3 text-center">
       <span className="text-xs uppercase tracking-widest text-violet-mid">
         Aposta {formatBRL(betValue)} · pague no PIX
@@ -39,6 +46,7 @@ export function PixInfo({
         <span className="select-all tracking-wide">{pixKey}</span>
         <span className="text-xs uppercase">{copied ? "✓ copiado" : "📋 copiar"}</span>
       </button>
+    </div>
     </div>
   );
 }

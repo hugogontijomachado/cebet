@@ -77,6 +77,8 @@ export default async function Home() {
         <h1 className="font-display text-3xl font-bold">Bolão CEMEP</h1>
       </header>
 
+      {game && <MatchCard game={game} />}
+
       {justWon ? (
         <WonPot winners={resolvedWinners} prize={Number(game!.pot_amount ?? 0)} />
       ) : (
@@ -90,7 +92,6 @@ export default async function Home() {
         <p className="text-violet-mid">Aguardando o próximo jogo…</p>
       ) : (
         <>
-          <MatchCard game={game} />
 
           {/* Placar parcial só existe depois do apito (apostas encerradas). */}
           {game.status === "closed" && (
