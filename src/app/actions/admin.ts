@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createAdmin } from "@/lib/supabase/admin";
 import { requireAdmin, verifyPinAndSetCookie } from "@/lib/admin-auth";
 import { computePoints } from "@/lib/scoring";
-import { carriedBetCount, computePot } from "@/lib/pot";
+import { carriedBetCount, carriedExtra, computePot } from "@/lib/pot";
 import { getResolvedSummaries, getLeaderboard } from "@/lib/queries";
 import type { Uuid } from "@/lib/types";
 
@@ -101,6 +101,15 @@ export async function setLiveScore(gameId: Uuid, a: number | null, b: number | n
   revalidatePath("/");
 }
 
+export async function setExtraPot(gameId: Uuid, amount: number) {
+  await requireAdmin();
+  if (!Number.isFinite(amount) || amount < 0) return;
+  const sb = createAdmin();
+  await sb.from("games").update({ extra_pot: amount }).eq("id", gameId);
+  revalidatePath("/");
+  revalidatePath("/admin");
+}
+
 export async function closeBetting(gameId: Uuid) {
   await requireAdmin();
   const sb = createAdmin();
@@ -149,7 +158,13 @@ export async function resolveGame(gameId: Uuid, resultA: number, resultB: number
     .select("bet_value")
     .eq("id", game.season_id)
     .single();
-  const pot = computePot(Number(season!.bet_value), carriedBetCount(priorSummaries), rows.length);
+  const pot = computePot(
+    Number(season!.bet_value),
+    carriedBetCount(priorSummaries),
+    rows.length,
+    carriedExtra(priorSummaries),
+    Number(game.extra_pot ?? 0),
+  );
 
   await sb
     .from("games")

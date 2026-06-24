@@ -36,12 +36,12 @@ There is no separate lint/test CI gate; `npm run build` is the type gate. Tests 
 **Domain model** (`src/lib/types.ts`, schema in `supabase/migrations/`):
 - One **season** with `status='active'` at a time (enforced by a partial unique index). Holds `bet_value`, `pix_name`/`pix_key` (configurable PIX), and `champion_participant_id`.
 - **participants** — open roster; identity is case-insensitive name unique per season.
-- **games** — lifecycle `open → closed → resolved`. Note column is `game_order` (`order` is reserved). `live_a`/`live_b` = preliminary score during play; `result_a`/`result_b` = final score at resolution; `had_exact_winner` boolean (co-winners are **derived** from `bets`, not stored as a FK).
+- **games** — lifecycle `open → closed → resolved`. Note column is `game_order` (`order` is reserved). `live_a`/`live_b` = preliminary score during play; `result_a`/`result_b` = final score at resolution; `had_exact_winner` boolean (co-winners are **derived** from `bets`, not stored as a FK). `extra_pot` = admin-set extra money added to this game's pot (accumulates like the bet pot).
 - **bets** — one per (game, participant), upsert-editable while open; `paid` flag; `points` filled at resolution.
 
 **Pure logic (TDD, no DB) — the heart of the rules:**
 - `scoring.ts`: `computePoints(pred, result)` → 5 (exact) / 3 (winner+goal-diff) / 2 (winner or draw) / 1 (one team's goals) / 0. Highest level wins.
-- `pot.ts`: `carriedBetCount` accumulates bet counts across games and **resets after any game with an exact winner**; `computePot = betValue × (carried + current)`. The same function computes the live pot, the prize won, and the champion's leftover pot.
+- `pot.ts`: `carriedBetCount` accumulates bet counts across games and **resets after any game with an exact winner**; `carriedExtra` does the same for the per-game `extra_pot` money (same reset rule); `computePot = betValue × (carried + current) + carriedExtra + currentExtra`. The same function computes the live pot, the prize won, and the champion's leftover pot.
 
 **Reads** are centralized in `src/lib/queries.ts` (active season, current game, leaderboard aggregation, pot wiring, champion, per-game bets). Supabase join results need `as unknown as` casts (the inferred type treats to-one joins as arrays).
 

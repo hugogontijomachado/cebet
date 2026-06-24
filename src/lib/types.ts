@@ -34,6 +34,7 @@ export interface Game {
   result_b: number | null;
   had_exact_winner: boolean;
   pot_amount: number | null;
+  extra_pot: number;
   created_at: string;
 }
 

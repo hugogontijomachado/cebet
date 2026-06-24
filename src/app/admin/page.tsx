@@ -2,7 +2,7 @@ import { isAdmin } from "@/lib/admin-auth";
 import { loginAdmin, createSeason, createGame, updatePix } from "@/app/actions/admin";
 import { getActiveSeason, getCurrentGame } from "@/lib/queries";
 import { FlagPicker } from "@/components/FlagPicker";
-import { GameControls, CloseSeasonButton } from "@/components/admin/AdminControls";
+import { GameControls, ExtraPotControl, CloseSeasonButton } from "@/components/admin/AdminControls";
 
 export const dynamic = "force-dynamic";
 
@@ -130,6 +130,7 @@ export default async function AdminPage({
                   {game.team_a_name} x {game.team_b_name} — <strong>{game.status}</strong>
                 </p>
                 <GameControls game={game} />
+                <ExtraPotControl game={game} />
               </div>
             ) : (
               <p className="text-violet-mid">

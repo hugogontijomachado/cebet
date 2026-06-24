@@ -1,5 +1,5 @@
 import { createServerRead } from "./supabase/server-read";
-import { carriedBetCount, computePot, type GameBetSummary } from "./pot";
+import { carriedBetCount, carriedExtra, computePot, type GameBetSummary } from "./pot";
 import { isExact } from "./scoring";
 import type { Season, Game, Participant, Bet, Uuid } from "./types";
 
@@ -84,21 +84,23 @@ export async function getResolvedSummaries(seasonId: Uuid): Promise<GameBetSumma
   const sb = createServerRead();
   const { data } = await sb
     .from("games")
-    .select("had_exact_winner, bets(count)")
+    .select("had_exact_winner, extra_pot, bets(count)")
     .eq("season_id", seasonId)
     .eq("status", "resolved")
     .eq("bets.excluded", false)
     .order("game_order", { ascending: true });
-  type Row = { had_exact_winner: boolean; bets: { count: number }[] };
+  type Row = { had_exact_winner: boolean; extra_pot: number; bets: { count: number }[] };
   return ((data as Row[]) ?? []).map((g) => ({
     betCount: g.bets?.[0]?.count ?? 0,
     hadExactWinner: g.had_exact_winner,
+    extraPot: Number(g.extra_pot ?? 0),
   }));
 }
 
 export async function getCurrentPot(season: Season, currentGame: Game | null): Promise<number> {
   const summaries = await getResolvedSummaries(season.id);
   let currentBetCount = 0;
+  let currentExtra = 0;
   if (currentGame && currentGame.status !== "resolved") {
     const sb = createServerRead();
     const { count } = await sb
@@ -107,8 +109,15 @@ export async function getCurrentPot(season: Season, currentGame: Game | null): P
       .eq("game_id", currentGame.id)
       .eq("excluded", false);
     currentBetCount = count ?? 0;
+    currentExtra = Number(currentGame.extra_pot ?? 0);
   }
-  return computePot(Number(season.bet_value), carriedBetCount(summaries), currentBetCount);
+  return computePot(
+    Number(season.bet_value),
+    carriedBetCount(summaries),
+    currentBetCount,
+    carriedExtra(summaries),
+    currentExtra,
+  );
 }
 
 export interface LeaderRow {
@@ -180,7 +189,13 @@ export async function getSeasonChampion(season: Season): Promise<ChampionInfo | 
   const top = board[0].points;
   const names = board.filter((r) => r.points === top).map((r) => r.participant.name);
   const summaries = await getResolvedSummaries(season.id);
-  const prize = computePot(Number(season.bet_value), carriedBetCount(summaries), 0);
+  const prize = computePot(
+    Number(season.bet_value),
+    carriedBetCount(summaries),
+    0,
+    carriedExtra(summaries),
+    0,
+  );
   return { names, points: top, prize };
 }
 
