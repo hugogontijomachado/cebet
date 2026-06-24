@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { closeBetting, resolveGame, closeSeason, setExtraPot } from "@/app/actions/admin";
+import { useConfirm } from "@/components/ConfirmDialog";
 import type { Game, Uuid } from "@/lib/types";
 
 export function ExtraPotControl({ game }: { game: Game }) {
@@ -37,11 +38,22 @@ export function GameControls({ game }: { game: Game }) {
   const [a, setA] = useState("");
   const [b, setB] = useState("");
   const [pending, start] = useTransition();
+  const confirm = useConfirm();
 
   if (game.status === "open") {
     return (
       <button
-        onClick={() => start(() => closeBetting(game.id))}
+        onClick={async () => {
+          if (
+            await confirm({
+              title: "Encerrar palpites?",
+              message: "Trava as apostas e exclui quem ainda não pagou.",
+              confirmLabel: "Encerrar palpites",
+              tone: "danger",
+            })
+          )
+            start(() => closeBetting(game.id));
+        }}
         disabled={pending}
         className="rounded-md bg-primary px-4 py-2 text-sm font-bold uppercase text-white"
       >
@@ -68,7 +80,17 @@ export function GameControls({ game }: { game: Game }) {
           placeholder="B"
         />
         <button
-          onClick={() => start(() => resolveGame(game.id, Number(a), Number(b)))}
+          onClick={async () => {
+            if (
+              await confirm({
+                title: "Lançar resultado?",
+                message: `${game.team_a_name} ${a} × ${b} ${game.team_b_name} — isto congela os pontos e o pote e não pode ser desfeito facilmente.`,
+                confirmLabel: "Lançar resultado",
+                tone: "danger",
+              })
+            )
+              start(() => resolveGame(game.id, Number(a), Number(b)));
+          }}
           disabled={pending || a === "" || b === ""}
           className="rounded-md bg-primary px-4 py-2 text-sm font-bold uppercase text-white disabled:opacity-50"
         >
@@ -86,10 +108,19 @@ export function GameControls({ game }: { game: Game }) {
 
 export function CloseSeasonButton({ seasonId }: { seasonId: Uuid }) {
   const [pending, start] = useTransition();
+  const confirm = useConfirm();
   return (
     <button
-      onClick={() => {
-        if (confirm("Encerrar a temporada e coroar o campeão?")) start(() => closeSeason(seasonId));
+      onClick={async () => {
+        if (
+          await confirm({
+            title: "Encerrar temporada?",
+            message: "Coroa o campeão e fecha a temporada definitivamente.",
+            confirmLabel: "Encerrar temporada",
+            tone: "danger",
+          })
+        )
+          start(() => closeSeason(seasonId));
       }}
       disabled={pending}
       className="rounded-md bg-pink px-4 py-2 text-sm font-bold uppercase text-ink-deep"

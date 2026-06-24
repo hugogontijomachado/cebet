@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Rubik, Space_Grotesk } from "next/font/google";
 import { ResponsibleGamingNotice } from "@/components/ResponsibleGamingNotice";
+import { ConfirmProvider } from "@/components/ConfirmDialog";
 
 const ui = Rubik({ subsets: ["latin"], variable: "--font-ui" });
 const display = Space_Grotesk({
@@ -19,8 +20,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={`${ui.variable} ${display.variable}`}>
       <body className="font-ui bg-canvas text-white antialiased">
-        {children}
-        <ResponsibleGamingNotice />
+        <ConfirmProvider>
+          {children}
+          <ResponsibleGamingNotice />
+        </ConfirmProvider>
       </body>
     </html>
   );

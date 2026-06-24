@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { setBetPaid, updateBetScore, deleteBet } from "@/app/actions/admin";
+import { useConfirm } from "@/components/ConfirmDialog";
 import { computePoints } from "@/lib/scoring";
 import { PointsLegend } from "./PointsLegend";
 import type { BetView } from "@/lib/queries";
@@ -212,6 +213,7 @@ function BetRow({
   const [a, setA] = useState(String(bet.predA));
   const [b, setB] = useState(String(bet.predB));
   const [pending, start] = useTransition();
+  const confirm = useConfirm();
 
   function save() {
     start(async () => {
@@ -224,8 +226,16 @@ function BetRow({
     setB(String(bet.predB));
     setEditing(false);
   }
-  function remove() {
-    if (confirm(`Excluir o palpite de ${bet.name}?`)) start(() => deleteBet(bet.id));
+  async function remove() {
+    if (
+      await confirm({
+        title: "Excluir palpite?",
+        message: `Excluir o palpite de ${bet.name}?`,
+        confirmLabel: "Excluir",
+        tone: "danger",
+      })
+    )
+      start(() => deleteBet(bet.id));
   }
 
   const exact = pts === 5;
