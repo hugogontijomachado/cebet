@@ -43,6 +43,7 @@ export const COUNTRIES: { code: string; name: string }[] = [
   { code: "RS", name: "Sérvia" },
   { code: "CH", name: "Suíça" },
   { code: "PL", name: "Polônia" },
+  { code: "NO", name: "Noruega" },
   { code: "US", name: "Estados Unidos" },
   { code: "MX", name: "México" },
   { code: "CA", name: "Canadá" },
